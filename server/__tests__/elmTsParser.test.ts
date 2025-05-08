@@ -9,15 +9,15 @@ describe('elmTsParser', () => {
 
       const expectedSymbols: SymbolInfo[] = [
         {
-          module: 'Basics.Extra',
+
           name: 'flip',
-          signature: '',
+          signature: 'flip : (a -> b -> c) -> (b -> a -> c)',
           doc: 'Flip the order of the first two arguments to a function.',
         },
         {
-          module: 'Basics.Extra',
+
           name: 'putIn',
-          signature: '',
+          signature: 'putIn : (a -> r -> r) -> r -> a -> r',
           doc: `Alias to flip.
 setemが生成したsetterを使って逆向きにsetしたいときに使う
 
@@ -26,45 +26,38 @@ setemが生成したsetterを使って逆向きにsetしたいときに使う
         |> putIn s_shared m`,
         },
         {
-          module: 'Basics.Extra',
           name: 'compareBy',
-          signature: '',
+          signature: 'compareBy : (a -> comparable) -> a -> a -> Order',
           doc: '',
         },
         {
-          module: 'Basics.Extra',
           name: 'compareByHelp',
-          signature: '',
+          signature: 'compareByHelp : (b -> b -> Order) -> (a -> b) -> a -> a -> Order',
           doc: '',
         },
         {
-          module: 'Basics.Extra',
           name: 'flipCompare',
-          signature: '',
+          signature: 'flipCompare : (a -> a -> Order) -> a -> a -> Order',
           doc: '',
         },
         {
-          module: 'Basics.Extra',
           name: 'withEqCompare',
-          signature: '',
+          signature: 'withEqCompare : (a -> a -> Order) -> (a -> a -> Order) -> a -> a -> Order',
           doc: '',
         },
         {
-          module: 'Basics.Extra',
           name: 'compareBool',
-          signature: '',
+          signature: 'compareBool : Bool -> Bool -> Order',
           doc: '',
         },
         {
-          module: 'Basics.Extra',
           name: 'updateIn',
-          signature: '',
+          signature: 'updateIn : (a -> b) -> (b -> a -> a) -> (b -> b) -> a -> a',
           doc: '',
         },
         {
-          module: 'Basics.Extra',
           name: 'updateMaybeIn',
-          signature: '',
+          signature: 'updateMaybeIn : (a -> Maybe b) -> (b -> a -> a) -> (b -> b) -> a -> a',
           doc: '',
         },
       ];

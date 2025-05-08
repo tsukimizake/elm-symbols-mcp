@@ -6,7 +6,6 @@ import { readFile } from "node:fs/promises";
  * 返却するシンボル情報型
  */
 export interface SymbolInfo {
-  module: string;
   name: string;
   signature: string;
   doc: string;
@@ -25,19 +24,13 @@ export async function collectSymbols(
   parser.setLanguage(Elm);
   const tree = parser.parse(code);
 
-  /* ---------- モジュール宣言 ---------- */
+
+  /* ---------- exposing ---------- */
+
   const moduleDecl = tree.rootNode.descendantsOfType("module_declaration")[0];
   if (!moduleDecl) {
     return symbols;
   }
-
-  const moduleNameNode = moduleDecl.children.find(
-    (c) => c.type === "upper_case_qid",
-  );
-  const moduleName: string =
-    moduleNameNode?.text.replace(/\s/g, "") ?? "Unknown";
-
-  /* ---------- exposing ---------- */
   const exposingNode = moduleDecl.children.find(
     (c) => c.type === "exposing_list",
   );
@@ -45,7 +38,6 @@ export async function collectSymbols(
   const exposed = new Set<string>();
 
   if (exposingNode) {
-    console.log(exposingNode.children);
     exposeAll = exposingNode.text.trim() === "(..)";
     if (!exposeAll) {
       exposingNode
@@ -71,9 +63,9 @@ export async function collectSymbols(
     if (!fnName) return;
     if (!exposeAll && !exposed.has(fnName)) return;
 
-    // 型注釈（次の sibling で type_annotation を探す）
+    // 型注釈（直前のsiblingでtype_annotation を探す）
     let signature = "";
-    let sib = node.nextSibling;
+    let sib = node.previousSibling;
     while (sib) {
       if (sib.type === "type_annotation") {
         signature = sib.text.trim();
@@ -85,7 +77,7 @@ export async function collectSymbols(
 
     // ドキュメントコメント（直前の block_comment で {-| ... -}）
     let doc = "";
-    let prev = node.previousSibling;
+    let prev = node.previousSibling?.previousSibling;
     while (prev && prev.type === "block_comment") {
       if (/^\{\-\|/.test(prev.text)) {
         doc = prev.text
@@ -97,7 +89,7 @@ export async function collectSymbols(
       prev = prev.previousSibling;
     }
 
-    symbols.push({ module: moduleName, name: fnName, signature, doc });
+    symbols.push({ name: fnName, signature, doc });
   });
 
   return symbols;
