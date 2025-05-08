@@ -1,17 +1,36 @@
-import express from 'express';
+import readline from 'readline';
 import { collectSymbols } from './elmTsParser';
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 3333;
-const app = express();
-
 /**
- * GET /api/symbols
- *  ?q=xxx で部分一致フィルタ
+ * stdio ベースの MCP サーバ
+ *
+ * - 1 行の入力を検索クエリとして処理し、結果を 1 行の JSON で返す
+ * - 空行は無視、"exit" で終了
+ *
+ * 起動例:
+ *   npx ts-node --transpile-only server/stdioServer.ts
  */
-app.get('/api/symbols', async (req, res) => {
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  terminal: false,
+});
+
+console.error('📡 MCP stdio server started. type a query or "exit".');
+
+rl.on('line', async (raw) => {
+  const line = raw.trim();
+  if (line.length === 0) return;
+
+  if (line === 'exit') {
+    console.error('👋 bye');
+    process.exit(0);
+  }
+
+  const q = line.toLowerCase();
+
   try {
     const all = await collectSymbols();
-    const q = String(req.query.q ?? '').toLowerCase();
     const result =
       q.length > 0
         ? all.filter(
@@ -20,15 +39,10 @@ app.get('/api/symbols', async (req, res) => {
               s.module.toLowerCase().includes(q),
           )
         : all;
-    res.json(result);
-  } catch (err) {
-    /* eslint-disable no-console */
-    console.error(err);
-    res.status(500).send('Internal Server Error');
-  }
-});
 
-app.listen(PORT, () => {
-  /* eslint-disable no-console */
-  console.log(`📡 MCP server listening on http://localhost:${PORT}`);
+    process.stdout.write(JSON.stringify(result) + '\n');
+  } catch (err) {
+    console.error('[error]', err);
+    process.stdout.write('[]\n');
+  }
 });
