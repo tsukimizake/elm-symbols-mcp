@@ -1,53 +1,29 @@
 import {
   McpServer,
-  ResourceTemplate,
 } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { collectSymbols } from "./elmTsParser";
 
-async function main() {
-  const server = new McpServer({
-    name: "ElmSymbolServer",
-    version: "1.0.0",
-  });
+const server = new McpServer({
+  name: "elm-symbol-server",
+  version: "1.0.0",
+}, { instructions: "This server return infos of the symbols exposed from the given Elm file." });
 
-  server.resource(
-    "elmSymbols", // リソース名
-    new ResourceTemplate("file://{filePath}", { list: undefined }), // URIテンプレート
-    async (uri, { filePath }) => {
-      // filePath は ResourceTemplate から抽出された文字列型のパラメータ
-      // 型アサーションやバリデーションを追加することも可能
-      const path = filePath as string;
+server.tool(
+  "elm-symbols",
+  { filePath: z.string() },
+  async ({ filePath }) => {
+    const symbols = await collectSymbols(filePath);
+    return {
+      content:
+        [{
+          type: "text",
+          text: JSON.stringify(symbols),
+        }]
+    };
+  },
+);
 
-      try {
-        const symbols = await collectSymbols(path);
-        return {
-          contents: [
-            {
-              uri: uri.href, // 要求されたURI
-              text: JSON.stringify(symbols), // シンボル情報をJSON文字列として設定
-            },
-          ],
-        };
-      } catch (err) {
-        console.error(
-          `[MCP Server] Error processing resource ${uri.href}:`,
-          err,
-        );
-        // エラーをスローすると、SDKが適切なJSON-RPCエラーレスポンスを生成します
-        throw err;
-      }
-    },
-  );
-
-  const transport = new StdioServerTransport();
-  console.error("📡 MCP Elm Symbol Server (stdio) starting...");
-  await server.connect(transport);
-  // server.connect は通常、サーバーが終了するまで解決されません
-  console.error("📡 MCP Elm Symbol Server (stdio) connected and listening.");
-}
-
-main().catch((err) => {
-  console.error("[MCP Server] Failed to start or unhandled error:", err);
-  process.exit(1);
-});
+const transport = new StdioServerTransport();
+await server.connect(transport);
