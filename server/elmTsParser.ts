@@ -28,30 +28,45 @@ export async function collectSymbols(
   /* ---------- モジュール宣言 ---------- */
   const moduleDecl = tree.rootNode.descendantsOfType("module_declaration")[0];
   if (!moduleDecl) {
-    // モジュール宣言がない場合は、シンボルを収集できないため空の配列を返す
     return symbols;
   }
 
-  const moduleName =
-    moduleDecl.childForFieldName("name")?.text.replace(/\s/g, "") ?? "Unknown";
+  const moduleNameNode = moduleDecl.children.find(
+    (c) => c.type === "upper_case_qid",
+  );
+  const moduleName: string =
+    moduleNameNode?.text.replace(/\s/g, "") ?? "Unknown";
 
   /* ---------- exposing ---------- */
-  const exposingNode = moduleDecl.childForFieldName("exposing");
+  const exposingNode = moduleDecl.children.find(
+    (c) => c.type === "exposing_list",
+  );
   let exposeAll = false;
   const exposed = new Set<string>();
 
   if (exposingNode) {
+    console.log(exposingNode.children);
     exposeAll = exposingNode.text.trim() === "(..)";
     if (!exposeAll) {
       exposingNode
-        .descendantsOfType(["upper_case_qid", "lower_case_qid"])
-        .forEach((n) => exposed.add(n.text.split(".").pop()!));
+        .descendantsOfType("exposed_value")
+        .forEach((node) => {
+          const child = node.firstChild;
+          if (child) {
+            exposed.add(child.text);
+          }
+        })
     }
   }
 
   /* ---------- 関数宣言 ---------- */
   tree.rootNode.descendantsOfType("value_declaration").forEach((node) => {
-    const nameNode = node.childForFieldName("name");
+    const functionDeclarationLeft = node.children.find(
+      (c) => c.type === "function_declaration_left",
+    );
+    const nameNode = functionDeclarationLeft?.children.find(
+      (id) => id.type === "lower_case_identifier",
+    );
     const fnName = nameNode?.text;
     if (!fnName) return;
     if (!exposeAll && !exposed.has(fnName)) return;

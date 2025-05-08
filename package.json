@@ -5,14 +5,15 @@
   "scripts": {
     "start": "npx tsx server/server.ts"
   },
+  "engines": {
+    "node": ">=14"
+  },
   "dependencies": {
-    "@elm-tooling/tree-sitter-elm": "^5.7.0",
+    "@elm-tooling/tree-sitter-elm": "<5.8.0",
     "@modelcontextprotocol/sdk": "^1.11.0",
     "@types/node": "^22.15.16",
-    "fast-glob": "^3.3.1",
-    "save-dev": "^0.0.1-security",
     "tsx": "^4.19.4",
-    "web-tree-sitter": "^0.20.6"
+    "tree-sitter": "^0.20.6"
   },
   "devDependencies": {
     "jest": "^29.7.0",
