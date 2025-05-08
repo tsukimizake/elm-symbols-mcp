@@ -1,48 +1,53 @@
-import readline from 'readline';
-import { collectSymbols } from './elmTsParser';
+import {
+  McpServer,
+  ResourceTemplate,
+} from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { collectSymbols } from "./elmTsParser";
 
-/**
- * stdio ベースの MCP サーバ
- *
- * - 1 行の入力を検索クエリとして処理し、結果を 1 行の JSON で返す
- * - 空行は無視、"exit" で終了
- *
- * 起動例:
- *   npx ts-node --transpile-only server/stdioServer.ts
- */
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  terminal: false,
-});
+async function main() {
+  const server = new McpServer({
+    name: "ElmSymbolServer",
+    version: "1.0.0",
+  });
 
-console.error('📡 MCP stdio server started. type a query or "exit".');
+  server.resource(
+    "elmSymbols", // リソース名
+    new ResourceTemplate("file://{filePath}", { list: undefined }), // URIテンプレート
+    async (uri, { filePath }) => {
+      // filePath は ResourceTemplate から抽出された文字列型のパラメータ
+      // 型アサーションやバリデーションを追加することも可能
+      const path = filePath as string;
 
-rl.on('line', async (raw) => {
-  const line = raw.trim();
-  if (line.length === 0) return;
+      try {
+        const symbols = await collectSymbols(path);
+        return {
+          contents: [
+            {
+              uri: uri.href, // 要求されたURI
+              text: JSON.stringify(symbols), // シンボル情報をJSON文字列として設定
+            },
+          ],
+        };
+      } catch (err) {
+        console.error(
+          `[MCP Server] Error processing resource ${uri.href}:`,
+          err,
+        );
+        // エラーをスローすると、SDKが適切なJSON-RPCエラーレスポンスを生成します
+        throw err;
+      }
+    },
+  );
 
-  if (line === 'exit') {
-    console.error('👋 bye');
-    process.exit(0);
-  }
+  const transport = new StdioServerTransport();
+  console.error("📡 MCP Elm Symbol Server (stdio) starting...");
+  await server.connect(transport);
+  // server.connect は通常、サーバーが終了するまで解決されません
+  console.error("📡 MCP Elm Symbol Server (stdio) connected and listening.");
+}
 
-  const q = line.toLowerCase();
-
-  try {
-    const all = await collectSymbols();
-    const result =
-      q.length > 0
-        ? all.filter(
-            (s) =>
-              s.name.toLowerCase().includes(q) ||
-              s.module.toLowerCase().includes(q),
-          )
-        : all;
-
-    process.stdout.write(JSON.stringify(result) + '\n');
-  } catch (err) {
-    console.error('[error]', err);
-    process.stdout.write('[]\n');
-  }
+main().catch((err) => {
+  console.error("[MCP Server] Failed to start or unhandled error:", err);
+  process.exit(1);
 });

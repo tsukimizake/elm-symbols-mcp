@@ -1,16 +1,17 @@
 {
-  "name": "elm-mcp",
+  "name": "elm-interface-mcp",
   "private": true,
-  "type": "commonjs",
+  "type": "esmodule",
   "scripts": {
-    "start": "npx ts-node --transpile-only server/server.ts",
-    "build:grammar": "npx tree-sitter build node_modules/@elm-tooling/tree-sitter-elm"
+    "start": "npx tsx server/server.ts"
   },
   "dependencies": {
     "@elm-tooling/tree-sitter-elm": "^5.7.0",
+    "@modelcontextprotocol/sdk": "^1.11.0",
     "@types/node": "^22.15.16",
     "fast-glob": "^3.3.1",
     "save-dev": "^0.0.1-security",
+    "tsx": "^4.19.4",
     "web-tree-sitter": "^0.20.6"
   },
   "devDependencies": {
