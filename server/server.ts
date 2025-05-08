@@ -14,15 +14,28 @@ server.tool(
   "elm-symbols",
   { filePath: z.string() },
   async ({ filePath }) => {
-    const symbols = await collectSymbols(filePath);
-    return {
-      content:
-        [{
-          type: "text",
-          text: JSON.stringify(symbols),
-        }]
-    };
-  },
+    try {
+      const symbols = await collectSymbols(filePath);
+      return {
+        content:
+          [{
+            type: "text",
+            text: JSON.stringify(symbols),
+          }]
+      };
+    }
+    catch (error) {
+      return {
+        isError: true,
+        content: [
+          {
+            type: "text",
+            text: `Error: ${error}`
+          }
+        ]
+      };
+    }
+  }
 );
 
 const transport = new StdioServerTransport();

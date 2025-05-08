@@ -33,8 +33,7 @@ export async function collectSymbols(
   }
 
   const moduleName =
-    moduleDecl.childForFieldName("name")?.text.replace(/\s/g, "") ??
-      "Unknown";
+    moduleDecl.childForFieldName("name")?.text.replace(/\s/g, "") ?? "Unknown";
 
   /* ---------- exposing ---------- */
   const exposingNode = moduleDecl.childForFieldName("exposing");
