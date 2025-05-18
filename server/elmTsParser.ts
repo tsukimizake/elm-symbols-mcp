@@ -1,15 +1,8 @@
 import { readFileSync } from 'fs';
 import Elm from './Main.elm';
 
-const app = Elm.init()
+const app = Elm.init();
 
-app.ports.toJs.subscribe((text: string) => {
-  console.log('[Elm]', text)
-})
-
-function sendToElm(input: string) {
-  app.ports.fromJs.send(input)
-}
 
 export interface SymbolInfo {
   name: string;
@@ -20,5 +13,18 @@ export interface SymbolInfo {
 
 export const collectSymbols = async (path: string) => {
   const file = readFileSync(path, 'utf-8');
-  sendToElm(file);
+  const answer = await sendAndWaitOnce(file);
+  console.log(answer);
+}
+
+// 注意: 複数のメッセージをasyncに処理できない
+async function sendAndWaitOnce(value: string) {
+  return new Promise(resolve => {
+    const handler = (msg: unknown) => {
+      app.ports.toJs.unsubscribe(handler);
+      resolve(msg);
+    };
+    app.ports.toJs.subscribe(handler);
+    app.ports.fromJs.send(value);
+  });
 }

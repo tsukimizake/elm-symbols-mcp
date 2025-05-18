@@ -30,4 +30,5 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotElmFile s ->
-            ( model, toJs ("Echo: " ++ s) )
+            -- TODO
+            ( model, toJs s )
