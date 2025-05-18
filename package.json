@@ -1,7 +1,7 @@
 {
   "name": "elm-interface-mcp",
   "private": true,
-  "type": "es2022",
+  "type": "module",
   "scripts": {
     "start": "npx tsx server/server.ts"
   },

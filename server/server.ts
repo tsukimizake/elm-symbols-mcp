@@ -38,5 +38,9 @@ server.tool(
   }
 );
 
+
+// for debug
+await collectSymbols("server/Main.elm");
+
 const transport = new StdioServerTransport();
 await server.connect(transport);
