@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
-import Elm from './Main.elm';
+import { Elm } from './Main.elm';
 
-const app = Elm.init();
+const app = Elm.Main.init();
 
 
 export interface SymbolInfo {
