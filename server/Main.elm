@@ -105,7 +105,14 @@ formattedDecls { declarations, moduleDefinition } =
                     )
                     { funcs = [], types = [] }
     in
-    ""
+    exposedDecls
+        |> (\{ funcs, types } ->
+                "symbols: "
+                    ++ String.join ", " funcs
+                    ++ "\n"
+                    ++ "type decls: "
+                    ++ String.join ", " types
+           )
 
 
 pushFunc : String -> Decls -> Decls
